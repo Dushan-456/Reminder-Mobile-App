@@ -42,7 +42,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Add new ToDo
-    void addTodo(ToDoItem todo) {
+// Change return type from void to long
+    long addTodo(ToDoItem todo) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(KEY_TITLE, todo.getTitle());
@@ -50,8 +51,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_TIME, todo.getTime());
         values.put(KEY_LOCATION, todo.getLocation());
 
-        db.insert(TABLE_TODOS, null, values);
+        // The insert method returns the new row ID, or -1 if an error occurred.
+        long id = db.insert(TABLE_TODOS, null, values);
         db.close();
+        return id; // Return the new ID
     }
 
     // Get all ToDos
