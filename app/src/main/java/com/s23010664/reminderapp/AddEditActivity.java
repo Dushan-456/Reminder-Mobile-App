@@ -111,22 +111,20 @@ public class AddEditActivity extends AppCompatActivity {
         todo.setTime(time);
         todo.setLocation(location);
 
+        int alarmId;
         if (toDoId != -1) {
             // Updating existing item
             todo.setId(toDoId);
             db.updateTodo(todo);
+            alarmId = toDoId; // Use the existing ID
         } else {
-            // Adding new item
-            db.addTodo(todo);
+            // Adding new item and getting its new ID
+            long newId = db.addTodo(todo);
+            alarmId = (int) newId; // Use the new ID returned by the database
         }
 
-        // After saving, we need to find the ID to set the alarm
-        // This is a simplified approach
-        int latestId = db.getAllTodos().get(db.getAllTodos().size()-1).getId();
-        if(toDoId != -1) latestId = toDoId; // use existing id if updating
-
-        // Set the alarm
-        AlarmHelper.setAlarm(this, latestId, title, date, time);
+// Set the alarm with the correct ID
+        AlarmHelper.setAlarm(this, alarmId, title, date, time);
 
         finish(); // Go back to MainActivity
     }
