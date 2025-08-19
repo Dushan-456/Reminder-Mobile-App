@@ -1,7 +1,13 @@
 package com.s23010664.reminderapp;
 
+import android.app.AlarmManager;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -10,8 +16,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
-import android.os.Build;
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,8 +29,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Check for Android 14's full-screen intent permission
+        checkFullScreenIntentPermission();
 
-        // Inside MainActivity's onCreate method
+        // Check for standard notification permission (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
         }
@@ -46,6 +52,28 @@ public class MainActivity extends AppCompatActivity {
         // Add swipe to delete
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(recyclerView);
+    }
+
+    private void checkFullScreenIntentPermission() {
+        // This check is for Android 14 (API 34) and higher.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            // Check if the permission is granted. canScheduleExactAlarms is the new check.
+            if (!alarmManager.canScheduleExactAlarms()) {
+                // If not granted, show a dialog to the user explaining why we need it.
+                new AlertDialog.Builder(this)
+                        .setTitle("Permission Required")
+                        .setMessage("To ensure alarms and reminders appear on your screen correctly, please enable the 'Alarms & reminders' permission for this app in the next screen.")
+                        .setPositiveButton("Go to Settings", (dialog, which) -> {
+                            // Open the settings screen for the user to grant the permission.
+                            Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                        .create()
+                        .show();
+            }
+        }
     }
 
     @Override
